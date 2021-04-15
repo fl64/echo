@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+  echo_http:
+    container_name: echo_http
+    build: .
+    restart: always
+    ports:
+    - 127.0.0.1:8000:8000
