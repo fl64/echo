@@ -47,3 +47,9 @@ curl -H "TestHeader: somevalue" localhost:8000 | jq .
   ]
 }
 ```
+
+**Docker image**
+```bash
+docker pull fl64/echo-http
+docker run --rm -p 8000:8000 fl64/echo-http
+```
