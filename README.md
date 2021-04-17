@@ -18,6 +18,7 @@ curl -H "TestHeader: somevalue" localhost:8000 | jq .
 **Output:**
 ```json
 {
+  "host": "localhost:8000",
   "url": "/",
   "method": "GET",
   "headers": {
@@ -34,22 +35,23 @@ curl -H "TestHeader: somevalue" localhost:8000 | jq .
   "body": "",
   "env": {
     "HOME": "/root",
-    "HOSTNAME": "709ae3979eba",
+    "HOSTNAME": "c96c590b45f7",
     "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   },
   "hostdata": {
     "args": "/app/server",
-    "hostname": "709ae3979eba"
+    "hostname": "c96c590b45f7"
   },
   "ipaddr": [
     "127.0.0.1",
-    "192.169.25.2"
-  ]
+    "192.169.6.2"
+  ],
+  "RemoteAddr": "192.169.6.1:39112"
 }
 ```
 
 **Docker image**
 ```bash
-docker pull fl64/echo-http
-docker run --rm -p 8000:8000 fl64/echo-http
+docker pull fl64/echo-http:latest
+docker run --rm -p 8000:8000 fl64/echo-http:latest
 ```
