@@ -18,6 +18,7 @@ type EchoServer struct {
 }
 
 type reqInfo struct {
+	Host       string            `json:"host"`
 	URL        string            `json:"url"`
 	Method     string            `json:"method"`
 	Headers    http.Header       `json:"headers"`
@@ -31,6 +32,7 @@ type reqInfo struct {
 func (e *EchoServer) getInfo(r *http.Request) (result *reqInfo, err error) {
 	result = &reqInfo{}
 	// getting request info
+	result.Host = r.Host
 	result.Method = r.Method
 	result.Headers = r.Header
 	result.URL = r.URL.String()
