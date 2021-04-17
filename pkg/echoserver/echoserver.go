@@ -26,7 +26,7 @@ type reqInfo struct {
 	Envs       map[string]string `json:"env"`
 	HostData   map[string]string `json:"hostdata"`
 	Ips        []string          `json:"ipaddr"`
-	RemoteAddr string            `json:"remoteaddr`
+	RemoteAddr string            `json:"remoteaddr"`
 }
 
 func (e *EchoServer) getInfo(r *http.Request) (result *reqInfo, err error) {
@@ -91,7 +91,11 @@ func (e *EchoServer) echoHandlerJson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(JsonReq)
+	_, err = w.Write(JsonReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (e *EchoServer) loggingMiddleware(next http.Handler) http.Handler {
