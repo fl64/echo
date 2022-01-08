@@ -1,11 +1,13 @@
 package processor
 
 import (
+	"bufio"
 	"echo-http/pkg/app/models"
+	"encoding/json"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -16,52 +18,123 @@ func NewProcessor() *Processor {
 	return &Processor{}
 }
 
-func (p Processor) GetInfo(r *http.Request) (result *models.Info, err error) {
-	result = &models.Info{}
-	// getting request info
-	result.Host = r.Host
-	result.Method = r.Method
-	result.Headers = r.Header
-	result.URL = r.URL.String()
-	result.Envs = make(map[string]string)
-
-	buf, err := ioutil.ReadAll(r.Body)
+func (p *Processor) GetRoutes() (*[]models.Route, error) {
+	routes := make([]models.Route, 1)
+	out, err := exec.Command("ip", "-j", "r").Output()
 	if err != nil {
 		return nil, err
 	}
-	result.Body = string(buf)
-	// getting ENV info
+	err = json.Unmarshal(out, &routes)
+	if err != nil {
+		return nil, err
+	}
+	return &routes, nil
+}
+
+func (p *Processor) GetIFaces() (*[]models.IFace, error) {
+	ifaces := make([]models.IFace, 1)
+	out, err := exec.Command("ip", "-j", "a").Output()
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(out, &ifaces)
+	if err != nil {
+		return nil, err
+	}
+	return &ifaces, nil
+}
+
+func (p *Processor) GetMounts() (*models.Mounts, error) {
+	mounts := make(models.Mounts, 0)
+	out, err := exec.Command("mount").Output()
+	if err != nil {
+		return nil, err
+	}
+	sc := bufio.NewScanner(strings.NewReader(string(out)))
+	for sc.Scan() {
+		mounts = append(mounts, sc.Text())
+	}
+	return &mounts, nil
+}
+
+func (p *Processor) GetResolvConf() (*models.ResolvConf, error) {
+	resolvconf := make(models.ResolvConf, 0)
+	out, err := exec.Command("cat", "/etc/resolv.conf").Output()
+	if err != nil {
+		return nil, err
+	}
+	sc := bufio.NewScanner(strings.NewReader(string(out)))
+	for sc.Scan() {
+		if strings.HasPrefix(sc.Text(), "#") {
+			continue
+		}
+		if len(sc.Text()) == 0 {
+			continue
+		}
+		resolvconf = append(resolvconf, sc.Text())
+	}
+	return &resolvconf, nil
+}
+
+func (p *Processor) GetRequestInfo(r *http.Request) (*models.Req, error) {
+	req := &models.Req{
+		Host:       r.Host,
+		URL:        r.URL.String(),
+		Method:     r.Method,
+		Headers:    r.Header,
+		RemoteAddr: r.RemoteAddr,
+	}
+	buf, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+	req.Body = string(buf)
+	return req, nil
+
+}
+
+func (p Processor) GetEnvs() *models.Envs {
+	envs := make(map[string]string)
 	for _, env := range os.Environ() {
 		envData := strings.Split(env, "=")
-		result.Envs[envData[0]] = envData[1]
+		envs[envData[0]] = envData[1]
 	}
+	return &models.Envs{Env: envs}
+}
 
+func (p Processor) GetInfo(r *http.Request) (*models.Info, error) {
+	result := &models.Info{}
 	result.HostData = make(map[string]string)
 	result.HostData["hostname"], _ = os.Hostname()
 	result.HostData["args"] = strings.Join(os.Args, ";")
+	result.Envs = p.GetEnvs()
 
-	// getting interfaces info
-	ifaces, err := net.Interfaces()
+	resolvconf, err := p.GetResolvConf()
 	if err != nil {
 		return nil, err
 	}
-	for _, i := range ifaces {
-		addrs, _ := i.Addrs()
-		if err != nil {
-			return nil, err
-		}
-		for _, addr := range addrs {
-			var ip net.IP
-			switch v := addr.(type) {
-			case *net.IPNet:
-				ip = v.IP
-			case *net.IPAddr:
-				ip = v.IP
-			}
-			result.Ips = append(result.Ips, net.IP.String(ip))
-		}
-	}
+	result.ResolvConf = resolvconf
 
-	result.RemoteAddr = r.RemoteAddr
-	return
+	req, err := p.GetRequestInfo(r)
+	if err != nil {
+		return nil, err
+	}
+	result.Req = req
+	routes, err := p.GetRoutes()
+	if err != nil {
+		return nil, err
+	}
+	result.Routes = routes
+	ifs, err := p.GetIFaces()
+	if err != nil {
+		return nil, err
+	}
+	result.Ifaces = ifs
+	mounts, err := p.GetMounts()
+	if err != nil {
+		return nil, err
+	}
+	result.Mounts = mounts
+	return result, nil
 }
