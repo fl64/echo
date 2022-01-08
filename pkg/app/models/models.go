@@ -1,6 +1,9 @@
 package models
 
-import "net/http"
+import (
+	"net/http"
+	"time"
+)
 
 type Info struct {
 	Req      *Req              `json:"request"`
@@ -8,11 +11,14 @@ type Info struct {
 	HostData map[string]string `json:"hostdata"`
 	Routes   *[]Route          `json:"routes"`
 	Ifaces   *[]IFace          `json:"ifaces"`
+	Mounts   *[]Mount          `json:"mounts"`
 }
 
 type Envs struct {
 	Env map[string]string `json:"env"`
 }
+
+type Mount string
 
 type Route struct {
 	Dst      string   `json:"dst,omitempty"`
@@ -37,14 +43,14 @@ type IFace struct {
 }
 
 type Addr struct {
-	Family            string `json:"family,omitempty"`
-	Local             string `json:"local,omitempty"`
-	Prefixlen         int    `json:"prefixlen,omitempty"`
-	Broadcast         string `json:"broadcast,omitempty"`
-	Scope             string `json:"scope,omitempty"`
-	Label             string `json:"label,omitempty"`
-	ValidLifeTime     int64  `json:"valid_life_time,omitempty"`
-	PreferredLifeTime int64  `json:"preferred_life_time,omitempty"`
+	Family            string        `json:"family,omitempty"`
+	Local             string        `json:"local,omitempty"`
+	Prefixlen         int           `json:"prefixlen,omitempty"`
+	Broadcast         string        `json:"broadcast,omitempty"`
+	Scope             string        `json:"scope,omitempty"`
+	Label             string        `json:"label,omitempty"`
+	ValidLifeTime     time.Duration `json:"valid_life_time,omitempty"`
+	PreferredLifeTime time.Duration `json:"preferred_life_time,omitempty"`
 }
 
 type Req struct {

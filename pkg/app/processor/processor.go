@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"bufio"
 	"echo-http/pkg/app/models"
 	"encoding/json"
 	"io/ioutil"
@@ -43,6 +44,19 @@ func (p *Processor) GetIFaces() (*[]models.IFace, error) {
 	return &ifaces, nil
 }
 
+func (p *Processor) GetMounts() (*[]models.Mount, error) {
+	mounts := make([]models.Mount, 0)
+	out, err := exec.Command("mount").Output()
+	if err != nil {
+		return nil, err
+	}
+	sc := bufio.NewScanner(strings.NewReader(string(out)))
+	for sc.Scan() {
+		mounts = append(mounts, models.Mount(sc.Text()))
+	}
+	return &mounts, nil
+}
+
 func (p *Processor) GetRequestInfo(r *http.Request) (*models.Req, error) {
 	req := &models.Req{
 		Host:       r.Host,
@@ -76,6 +90,7 @@ func (p Processor) GetInfo(r *http.Request) (*models.Info, error) {
 	result.HostData["hostname"], _ = os.Hostname()
 	result.HostData["args"] = strings.Join(os.Args, ";")
 	result.Envs = p.GetEnvs()
+
 	req, err := p.GetRequestInfo(r)
 	if err != nil {
 		return nil, err
@@ -91,5 +106,10 @@ func (p Processor) GetInfo(r *http.Request) (*models.Info, error) {
 		return nil, err
 	}
 	result.Ifaces = ifs
+	mounts, err := p.GetMounts()
+	if err != nil {
+		return nil, err
+	}
+	result.Mounts = mounts
 	return result, nil
 }
