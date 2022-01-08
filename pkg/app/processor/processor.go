@@ -44,17 +44,36 @@ func (p *Processor) GetIFaces() (*[]models.IFace, error) {
 	return &ifaces, nil
 }
 
-func (p *Processor) GetMounts() (*[]models.Mount, error) {
-	mounts := make([]models.Mount, 0)
+func (p *Processor) GetMounts() (*models.Mounts, error) {
+	mounts := make(models.Mounts, 0)
 	out, err := exec.Command("mount").Output()
 	if err != nil {
 		return nil, err
 	}
 	sc := bufio.NewScanner(strings.NewReader(string(out)))
 	for sc.Scan() {
-		mounts = append(mounts, models.Mount(sc.Text()))
+		mounts = append(mounts, sc.Text())
 	}
 	return &mounts, nil
+}
+
+func (p *Processor) GetResolvConf() (*models.ResolvConf, error) {
+	resolvconf := make(models.ResolvConf, 0)
+	out, err := exec.Command("cat", "/etc/resolv.conf").Output()
+	if err != nil {
+		return nil, err
+	}
+	sc := bufio.NewScanner(strings.NewReader(string(out)))
+	for sc.Scan() {
+		if strings.HasPrefix(sc.Text(), "#") {
+			continue
+		}
+		if len(sc.Text()) == 0 {
+			continue
+		}
+		resolvconf = append(resolvconf, sc.Text())
+	}
+	return &resolvconf, nil
 }
 
 func (p *Processor) GetRequestInfo(r *http.Request) (*models.Req, error) {
@@ -90,6 +109,12 @@ func (p Processor) GetInfo(r *http.Request) (*models.Info, error) {
 	result.HostData["hostname"], _ = os.Hostname()
 	result.HostData["args"] = strings.Join(os.Args, ";")
 	result.Envs = p.GetEnvs()
+
+	resolvconf, err := p.GetResolvConf()
+	if err != nil {
+		return nil, err
+	}
+	result.ResolvConf = resolvconf
 
 	req, err := p.GetRequestInfo(r)
 	if err != nil {

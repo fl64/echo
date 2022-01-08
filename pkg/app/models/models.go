@@ -6,19 +6,22 @@ import (
 )
 
 type Info struct {
-	Req      *Req              `json:"request"`
-	Envs     *Envs             `json:"envs"`
-	HostData map[string]string `json:"hostdata"`
-	Routes   *[]Route          `json:"routes"`
-	Ifaces   *[]IFace          `json:"ifaces"`
-	Mounts   *[]Mount          `json:"mounts"`
+	Req         *Req              `json:"request"`
+	Envs        *Envs             `json:"envs"`
+	HostData    map[string]string `json:"hostdata"`
+	Routes      *[]Route          `json:"routes"`
+	Ifaces      *[]IFace          `json:"ifaces"`
+	*Mounts     `json:"mounts"`
+	*ResolvConf `json:"resolv.conf"`
 }
 
 type Envs struct {
 	Env map[string]string `json:"env"`
 }
 
-type Mount string
+type Mounts []string
+
+type ResolvConf []string
 
 type Route struct {
 	Dst      string   `json:"dst,omitempty"`
