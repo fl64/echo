@@ -1,4 +1,4 @@
-FROM golang:1.15-buster as builder
+FROM golang:1.17-buster as builder
 
 ENV GO111MODULE "on"
 
@@ -8,7 +8,7 @@ RUN go mod download
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build \
   -o server \
   -ldflags "-X main.BuildDatetime=$(date --iso-8601=seconds)" \
-  ./cmd/server.go
+  ./cmd/main.go
 
 FROM alpine:3.13
 WORKDIR /app
