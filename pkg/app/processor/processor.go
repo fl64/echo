@@ -76,7 +76,7 @@ func (p *Processor) GetResolvConf() (*models.ResolvConf, error) {
 	return &resolvconf, nil
 }
 
-func (p *Processor) GetRequestInfo(r *http.Request) (*models.Req, error) {
+func (p *Processor) GetRequest(r *http.Request) (*models.Req, error) {
 	req := &models.Req{
 		Host:       r.Host,
 		URL:        r.URL.String(),
@@ -103,7 +103,7 @@ func (p Processor) GetEnvs() *models.Envs {
 	return &models.Envs{Env: envs}
 }
 
-func (p Processor) GetInfo(r *http.Request) (*models.Info, error) {
+func (p Processor) GetAll(r *http.Request) (*models.Info, error) {
 	result := &models.Info{}
 	result.HostData = make(map[string]string)
 	result.HostData["hostname"], _ = os.Hostname()
@@ -116,7 +116,7 @@ func (p Processor) GetInfo(r *http.Request) (*models.Info, error) {
 	}
 	result.ResolvConf = resolvconf
 
-	req, err := p.GetRequestInfo(r)
+	req, err := p.GetRequest(r)
 	if err != nil {
 		return nil, err
 	}
