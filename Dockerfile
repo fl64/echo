@@ -13,7 +13,7 @@ RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build \
 FROM alpine:3.13
 WORKDIR /app
 COPY --from=builder /usr/local/go/src/echo-http/server /app/
-RUN apk add curl jq iproute2 --no-cache
+RUN apk add curl jq iproute2 bind-tools --no-cache
 EXPOSE 8000
 ENTRYPOINT ["/app/server"]
 LABEL maintainer="flsixtyfour@gmail.com"
