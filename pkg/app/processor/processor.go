@@ -17,7 +17,16 @@ func NewProcessor() *Processor {
 }
 
 func (p Processor) GetInfo(r *http.Request) (result *models.Info, err error) {
+
 	result = &models.Info{}
+
+	routes, err := p.GetRoutes()
+	if err != nil {
+		return nil, err
+	}
+
+	result.Routes = routes
+
 	// getting request info
 	result.Host = r.Host
 	result.Method = r.Method

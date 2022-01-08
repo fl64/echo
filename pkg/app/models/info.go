@@ -12,4 +12,13 @@ type Info struct {
 	HostData   map[string]string `json:"hostdata"`
 	Ips        []string          `json:"ipaddr"`
 	RemoteAddr string            `json:"remoteaddr"`
+	Routes     *[]Route          `json:"routes"`
+}
+
+type Route struct {
+	Dst      string `json:"dst,omitempty"`
+	Gateway  string `json:"gateway,omitempty"`
+	Dev      string `json:"dev,omitempty"`
+	Protocol string `json:"protocol,omitempty"`
+	Metric   int    `json:"metric,omitempty"`
 }
