@@ -2,12 +2,19 @@ FROM golang:1.17-buster as builder
 
 ENV GO111MODULE "on"
 
+ARG BUILD_VER
+
 WORKDIR /usr/local/go/src/echo-http
 COPY . .
 RUN go mod download
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build \
+ENV GOOS=linux
+ENV GOARCH=amd64
+ENV CGO_ENABLED=0
+
+RUN go build \
+  -v \
+  -ldflags "-w -s -X 'main.BuildDatetime=$(date --iso-8601=seconds)' -X 'main.BuildVer=${BUILD_VER}'" \
   -o server \
-  -ldflags "-X main.BuildDatetime=$(date --iso-8601=seconds)" \
   ./cmd/main.go
 
 FROM alpine:3.13

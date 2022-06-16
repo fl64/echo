@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"echo-http/pkg/app/processor"
+	"echo-http/internal/app/processor"
 	"net/http"
 )
 
@@ -16,7 +16,7 @@ func NewHandler(proc *processor.Processor) *Handler {
 }
 
 func (h *Handler) JsonAllInfo(w http.ResponseWriter, r *http.Request) {
-	info, err := h.proc.GetAll(r)
+	info, err := h.proc.Do(r)
 	if err != nil {
 		WrapErrorWithStatus(w, err, http.StatusInternalServerError)
 		return

@@ -1,7 +1,7 @@
 package api
 
 import (
-	"echo-http/pkg/app/handlers"
+	"echo-http/internal/app/handlers"
 	"github.com/gorilla/mux"
 )
 
