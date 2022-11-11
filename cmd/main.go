@@ -30,7 +30,7 @@ func main() {
 
 	prom := prometheus.NewRegistry()
 	m := metrics.NewMetricsServer(config.MetricsAddr, prom)
-	a := app.NewApp(config.ServerAddr, prom)
+	a := app.NewApp(config.ServerAddr, config.TLSCrtFile, config.TLSKeyFile, prom)
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan,

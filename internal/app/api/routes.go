@@ -7,6 +7,7 @@ import (
 
 func CreateRoutes(Handler *handlers.Handler) *mux.Router {
 	r := mux.NewRouter()
+	r.PathPrefix("/generate").HandlerFunc(Handler.Generate)
 	r.PathPrefix("/").HandlerFunc(Handler.JsonAllInfo)
 	//r.HandleFunc("/", Handler.JsonAllInfo)
 	//r.HandleFunc("/mounts", Handler.JsonMounts).Methods("GET")

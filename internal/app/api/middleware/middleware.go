@@ -22,11 +22,13 @@ func (m *Middleware) Logging(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 		t2 := time.Now()
 		log.WithFields(log.Fields{
-			"url":         r.URL.String(),
-			"user-agent":  r.Header["User-Agent"],
-			"method":      r.Method,
-			"remote-addr": r.RemoteAddr,
-			"duration":    t2.Sub(t1).String(),
+			"url":            r.URL.String(),
+			"host":           r.Host,
+			"user-agent":     r.Header["User-Agent"],
+			"method":         r.Method,
+			"remote-addr":    r.RemoteAddr,
+			"content-length": r.ContentLength,
+			"duration":       t2.Sub(t1).String(),
 		}).Info()
 	})
 }

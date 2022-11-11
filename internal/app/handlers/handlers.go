@@ -3,6 +3,8 @@ package handlers
 import (
 	"echo-http/internal/app/processor"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type Handler struct {
@@ -22,4 +24,17 @@ func (h *Handler) JsonAllInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	WrapOK(w, info)
+}
+
+func (h *Handler) Generate(w http.ResponseWriter, r *http.Request) {
+	l := r.FormValue("len")
+	n, err := strconv.Atoi(l)
+	if err != nil {
+		WrapErrorWithStatus(w, err, http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(strings.Repeat(strings.Repeat("#", 1), n)))
+	w.Header().Set("Content-Type", "application/text; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+
 }
