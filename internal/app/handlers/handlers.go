@@ -28,13 +28,15 @@ func (h *Handler) JsonAllInfo(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Generate(w http.ResponseWriter, r *http.Request) {
 	l := r.FormValue("len")
+	if l == "" {
+		l = "1"
+	}
 	n, err := strconv.Atoi(l)
 	if err != nil {
 		WrapErrorWithStatus(w, err, http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte(strings.Repeat(strings.Repeat("#", 1), n)))
+	_, _ = w.Write([]byte(strings.Repeat(strings.Repeat("#", 1), n)))
 	w.Header().Set("Content-Type", "application/text; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-
 }

@@ -85,7 +85,12 @@ func (a *App) Run(ctx context.Context) error {
 			Handler: r,
 		}
 		log.Infof("Starting https on %s", a.addrTLS)
-		go a.srvTLS.ListenAndServeTLS(a.crtFile, a.keyFile)
+		go func() {
+			err := a.srvTLS.ListenAndServeTLS(a.crtFile, a.keyFile)
+			if err != nil {
+				log.Errorf("Can't serve https: %+v", err)
+			}
+		}()
 	}
 
 	log.Infof("Starting http on %s", a.addr)

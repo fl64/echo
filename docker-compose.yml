@@ -6,8 +6,9 @@ services:
     build:
       context: .
       args:
-        BUILD_VER: local build
+        BUILD_VER: dev-build
 
     restart: always
     ports:
     - 127.0.0.1:8000:8000
+    - 127.0.0.1:8443:8443
