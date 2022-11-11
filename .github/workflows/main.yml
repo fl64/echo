@@ -25,9 +25,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v2
+      - uses: actions/checkout@v3
+#      - name: Run golangci-lint
+#        uses: golangci/golangci-lint-action@v3
       - name: Run tests
         run: |
           if [ -f docker-compose.yml ]; then
