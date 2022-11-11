@@ -5,10 +5,11 @@ import (
 )
 
 type Cfg struct {
-	ServerAddr  string `env:"SERVER_ADDR" envDefault:":8000"`
-	MetricsAddr string `env:"METRICS_ADDR" envDefault:":8001"`
-	TLSKeyFile  string `env:"TLS_KEY_FILE" envDefault:"tls.key"`
-	TLSCrtFile  string `env:"TLS_CRT_FILE" envDefault:"tls.crt"`
+	ServerAddr    string `env:"SERVER_ADDR" envDefault:":8000"`
+	ServerTLSAddr string `env:"SERVER_TLS_ADDR" envDefault:":8443"`
+	MetricsAddr   string `env:"METRICS_ADDR" envDefault:":8001"`
+	TLSKeyFile    string `env:"TLS_KEY_FILE" envDefault:"tls.key"`
+	TLSCrtFile    string `env:"TLS_CRT_FILE" envDefault:"tls.crt"`
 }
 
 func GetConfig() (*Cfg, error) {

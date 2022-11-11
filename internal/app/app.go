@@ -16,7 +16,9 @@ import (
 
 type App struct {
 	addr    string
+	addrTLS string
 	srv     *http.Server
+	srvTLS  *http.Server
 	prom    *prometheus.Registry
 	keyFile string
 	crtFile string
@@ -26,9 +28,10 @@ const (
 	Namespace = "echo"
 )
 
-func NewApp(addr, crt, key string, prom *prometheus.Registry) *App {
+func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry) *App {
 	return &App{
 		addr:    addr,
+		addrTLS: addrTLS,
 		crtFile: crt,
 		keyFile: key,
 		prom:    prom,
@@ -44,12 +47,17 @@ func (a *App) Run(ctx context.Context) error {
 			cancel()
 		}()
 		if err := a.srv.Shutdown(ctxShutDown); err != nil {
-			log.Fatalf("server Shutdown Failed:%s", err)
+			log.Fatalf("http server Shutdown Failed:%s", err)
+		}
+		if a.srvTLS != nil {
+			if err := a.srvTLS.Shutdown(ctxShutDown); err != nil {
+				log.Fatalf("https server Shutdown Failed:%s", err)
+			}
 		}
 
 	}()
 
-	log.Infof("Starting app on %s", a.addr)
+	log.Info("Starting app ...")
 	p := processor.NewProcessor(a.prom)
 	h := handlers.NewHandler(p)
 	r := api.CreateRoutes(h)
@@ -70,13 +78,18 @@ func (a *App) Run(ctx context.Context) error {
 		Addr:    a.addr,
 		Handler: r,
 	}
+
 	if errKey == nil && errCrt == nil {
-		log.Info("Serving https")
-		err = a.srv.ListenAndServeTLS(a.crtFile, a.keyFile)
-	} else {
-		log.Info("Serving http")
-		err = a.srv.ListenAndServe()
+		a.srvTLS = &http.Server{
+			Addr:    a.addrTLS,
+			Handler: r,
+		}
+		log.Infof("Starting https on %s", a.addrTLS)
+		go a.srvTLS.ListenAndServeTLS(a.crtFile, a.keyFile)
 	}
+
+	log.Infof("Starting http on %s", a.addr)
+	err = a.srv.ListenAndServe()
 
 	if err != nil && err != http.ErrServerClosed {
 		return err
