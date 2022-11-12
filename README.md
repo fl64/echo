@@ -1,4 +1,4 @@
-echo-http
+echo
 =========
 
 Simple service for debugging requests, container env and networking
@@ -13,6 +13,8 @@ make build
 **Usage example**
 ```bash
 curl -H "TestHeader: somevalue" localhost:8000 | jq .
+curl -H "TestHeader: somevalue" https://localhost:8443 | jq .
+echo "test" | nc -q 1 localhost 1234
 ```
 
 **Example output:**
@@ -50,6 +52,6 @@ curl -H "TestHeader: somevalue" localhost:8000 | jq .
 
 **Docker image**
 ```bash
-docker pull fl64/echo-http:latest
-docker run --rm -p 8000:8000 fl64/echo-http:latest
+docker pull fl64/echo:latest
+docker run --rm -p 8000:8000 -p 8443:8443 -p 1234:1234 fl64/echo:latest
 ```

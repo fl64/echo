@@ -17,7 +17,7 @@ RUN go build \
   -o server \
   ./cmd/main.go
 
-FROM alpine:3.13
+FROM alpine:3.16
 WORKDIR /app
 COPY --from=builder /usr/local/go/src/echo-http/server /app/
 # test cert/key
@@ -27,5 +27,5 @@ RUN apk add curl jq iproute2 bind-tools --no-cache
 EXPOSE 8000
 ENTRYPOINT ["/app/server"]
 LABEL maintainer="flsixtyfour@gmail.com"
-LABEL org.label-schema.vcs-url="https://github.com/fl64/http-echo"
-LABEL org.label-schema.docker.cmd="docker run --rm -p 8000:8000 -p 8443:8443 fl64/echo-http:latest"
+LABEL org.label-schema.vcs-url="https://github.com/fl64/echo"
+LABEL org.label-schema.docker.cmd="docker run --rm -p 8000:8000 -p 8443:8443 -p 1234:1234 fl64/echo:latest"
