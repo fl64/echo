@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"echo-http/internal/app-http/processor"
+	"echo/internal/app-http/processor"
 	"net/http"
 	"strconv"
 	"strings"

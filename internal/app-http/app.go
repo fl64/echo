@@ -2,10 +2,10 @@ package app_http
 
 import (
 	"context"
-	"echo-http/internal/app-http/api"
-	"echo-http/internal/app-http/api/middleware"
-	"echo-http/internal/app-http/handlers"
-	"echo-http/internal/app-http/processor"
+	"echo/internal/app-http/api"
+	"echo/internal/app-http/api/middleware"
+	"echo/internal/app-http/handlers"
+	"echo/internal/app-http/processor"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"

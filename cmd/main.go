@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	app_http "echo-http/internal/app-http"
-	app_tcp "echo-http/internal/app-tcp"
-	"echo-http/internal/cfg"
-	"echo-http/internal/metrics"
+	app_http "echo/internal/app-http"
+	app_tcp "echo/internal/app-tcp"
+	"echo/internal/cfg"
+	"echo/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"os"
