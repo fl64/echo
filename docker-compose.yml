@@ -1,14 +1,23 @@
 version: '3.4'
 
 services:
-  echo_http:
-    container_name: echo_http
+  echo:
+    container_name: echo
     build:
       context: .
       args:
         BUILD_VER: dev-build
-
     restart: always
     ports:
     - 127.0.0.1:8000:8000
     - 127.0.0.1:8443:8443
+    - 127.0.0.1:8333:1234
+  prober_http:
+    image: fl64/prober
+    command: bash -c "while true; do curl -sq echo:8000; sleep 1; done"
+  prober_https:
+    image: fl64/prober
+    command: bash -c "while true; do curl -sqk https://echo:8443; sleep 1; done"
+  prober_tcp:
+    image: fl64/prober
+    command: bash -c "while true; do echo "test" | nc -q 1 echo 1234; sleep 1; done"

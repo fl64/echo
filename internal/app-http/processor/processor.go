@@ -1,7 +1,7 @@
 package processor
 
 import (
-	"echo-http/internal/app/models"
+	"echo-http/internal/app-http/models"
 	"github.com/prometheus/client_golang/prometheus"
 	"io/ioutil"
 	"net/http"

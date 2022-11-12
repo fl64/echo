@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"echo-http/internal/app"
+	app_http "echo-http/internal/app-http"
+	app_tcp "echo-http/internal/app-tcp"
 	"echo-http/internal/cfg"
 	"echo-http/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
@@ -29,8 +30,9 @@ func main() {
 	}
 
 	prom := prometheus.NewRegistry()
-	m := metrics.NewMetricsServer(config.MetricsAddr, prom)
-	a := app.NewApp(config.ServerAddr, config.ServerTLSAddr, config.TLSCrtFile, config.TLSKeyFile, prom)
+	m := metrics.NewMetricsServer(config.MetricsServerAddr, prom)
+	t := app_tcp.NewTCPServer(config.TCPServerAddr, prom)
+	a := app_http.NewApp(config.HTTPServerAddr, config.HTTPSServerAddr, config.TLSCrtFile, config.TLSKeyFile, prom)
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan,
@@ -48,6 +50,12 @@ func main() {
 		err = m.Run(ctx)
 		if err != nil {
 			log.Fatalf("Can't run metrics server: %v \n", err)
+		}
+	}()
+	go func() {
+		err = t.Run()
+		if err != nil {
+			log.Fatalf("Can't run TCP server: %v \n", err)
 		}
 	}()
 	err = a.Run(ctx)
