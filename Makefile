@@ -1,5 +1,5 @@
 REGISTRY_REPO=fl64
-CONTAINER_NAME=echo-http
+CONTAINER_NAME=echo
 CONTAINER_VER:=$(shell git describe --tags)
 
 HADOLINT_VER:=v1.22.1
