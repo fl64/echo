@@ -33,14 +33,14 @@ func (p *Middleware) initMetrics() {
 		Help:        "A histogram of latencies for request duration",
 		ConstLabels: nil,
 		Buckets:     prometheus.DefBuckets,
-	}, []string{})
+	}, []string{"method"})
 	p.metrics.requestCount = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace:   "echo",
 		Subsystem:   "request",
 		Name:        "count_total",
 		Help:        "A requests counter",
 		ConstLabels: nil,
-	}, []string{})
+	}, []string{"method", "path"})
 	if p.prom != nil {
 		p.prom.MustRegister(p.metrics.requestCount)
 		p.prom.MustRegister(p.metrics.requestDuration)
@@ -54,8 +54,15 @@ func (m *Middleware) Metrics(next http.Handler) http.Handler {
 		startTime := time.Now()
 		// Call the next handler, which can be another middleware in the chain, or the final handler.
 		next.ServeHTTP(w, r)
-		m.metrics.requestCount.WithLabelValues().Inc()
-		m.metrics.requestDuration.WithLabelValues().Observe(time.Since(startTime).Seconds())
+		//log.Infof("PIU")
+
+		m.metrics.requestCount.With(prometheus.Labels{
+			"method": r.Method,
+			"path":   r.RequestURI,
+		}).Inc()
+		m.metrics.requestDuration.With(prometheus.Labels{
+			"method": r.Method,
+		}).Observe(time.Since(startTime).Seconds())
 	})
 }
 
