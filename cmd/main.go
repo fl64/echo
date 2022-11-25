@@ -46,18 +46,21 @@ func main() {
 		log.Println("Catch signal: ", s)
 		cancel()
 	}()
+
 	go func() {
 		err = m.Run(ctx)
 		if err != nil {
 			log.Fatalf("Can't run metrics server: %v \n", err)
 		}
 	}()
+
 	go func() {
 		err = t.Run()
 		if err != nil {
 			log.Fatalf("Can't run TCP server: %v \n", err)
 		}
 	}()
+
 	err = a.Run(ctx)
 	if err != nil {
 		log.Fatalf("Can't run app: %v \n", err)
