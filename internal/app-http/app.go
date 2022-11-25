@@ -74,7 +74,8 @@ func (a *App) Run(ctx context.Context) error {
 	p := processor.NewProcessor(a.prom)
 	h := handlers.NewHandler(p)
 	r := api.CreateRoutes(h)
-	m := middleware.NewMiddleware()
+	m := middleware.NewMiddleware(a.prom)
+	r.Use(m.Metrics)
 	r.Use(m.Logging)
 
 	pwd, err := os.Getwd()
