@@ -3,7 +3,7 @@ package processor
 import (
 	"echo/internal/app-http/models"
 	"github.com/prometheus/client_golang/prometheus"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -60,7 +60,7 @@ func (p *Processor) GetRequest(r *http.Request) (*models.Req, error) {
 		Headers:    r.Header,
 		RemoteAddr: r.RemoteAddr,
 	}
-	buf, err := ioutil.ReadAll(r.Body)
+	buf, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
 		return nil, err

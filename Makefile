@@ -1,6 +1,7 @@
 REGISTRY_REPO=fl64
 CONTAINER_NAME=echo
 CONTAINER_VER:=$(shell git describe --tags)
+CONTAINER_VER := $(if $(CONTAINER_VER),$(CONTAINER_VER),$(shell git rev-parse --short HEAD))
 
 HADOLINT_VER:=v1.22.1
 GOLANGLINT_VER:=v1.39.0
