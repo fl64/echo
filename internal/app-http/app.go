@@ -52,22 +52,27 @@ func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry) *App {
 }
 
 func (a *App) Run(ctx context.Context) error {
+	ctxShutDown := context.Background()
+	ctxShutDown, cancel := context.WithTimeout(ctxShutDown, time.Second*5)
+	defer func() {
+		cancel()
+	}()
+
 	go func() {
 		<-ctx.Done()
-		ctxShutDown := context.Background()
-		ctxShutDown, cancel := context.WithTimeout(ctxShutDown, time.Second*5)
-		defer func() {
-			cancel()
-		}()
 		if err := a.http.srv.Shutdown(ctxShutDown); err != nil {
 			log.Fatalf("http server Shutdown Failed:%s", err)
+		} else {
+			log.Info("Http server stopped")
 		}
 		if a.https.srv != nil {
 			if err := a.https.srv.Shutdown(ctxShutDown); err != nil {
 				log.Fatalf("https server Shutdown Failed:%s", err)
+			} else {
+				log.Info("Https server stopped")
 			}
 		}
-
+		cancel()
 	}()
 
 	log.Info("Starting app ...")
@@ -93,6 +98,7 @@ func (a *App) Run(ctx context.Context) error {
 		Handler: r,
 	}
 
+	// if cert/key exist -> run https
 	if errKey == nil && errCrt == nil {
 		a.https.srv = &http.Server{
 			Addr:    a.https.addr,
@@ -101,7 +107,7 @@ func (a *App) Run(ctx context.Context) error {
 		log.Infof("Starting https on %s", a.https.addr)
 		go func() {
 			err := a.https.srv.ListenAndServeTLS(a.https.crtFile, a.https.keyFile)
-			if err != nil {
+			if err != nil && err != http.ErrServerClosed {
 				log.Errorf("Can't serve https: %+v", err)
 			}
 		}()
@@ -113,6 +119,8 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil && err != http.ErrServerClosed {
 		return err
 	}
+
+	<-ctxShutDown.Done()
 	log.Info("App stopped")
 	return nil
 

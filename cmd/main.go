@@ -20,6 +20,7 @@ func main() {
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetLevel(log.DebugLevel)
 	log.Infof("App ver %s, build time %s", BuildVer, BuildDatetime)
+
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -66,3 +67,5 @@ func main() {
 		log.Fatalf("Can't run app: %v \n", err)
 	}
 }
+
+// https://stackoverflow.com/questions/43631854/gracefully-shutdown-gorilla-server
