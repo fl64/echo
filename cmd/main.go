@@ -35,6 +35,7 @@ func main() {
 	t := app_tcp.NewTCPServer(config.TCPServerAddr, prom)
 	a := app_http.NewApp(config.HTTPServerAddr, config.HTTPSServerAddr, config.TLSCrtFile, config.TLSKeyFile, prom)
 
+	// signal
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan,
 		syscall.SIGHUP,
@@ -44,10 +45,11 @@ func main() {
 	go func() {
 		s := <-sigChan
 		close(sigChan)
-		log.Println("Catch signal: ", s)
+		log.Infof("Catch signal: %s", s)
 		cancel()
 	}()
 
+	// metrics
 	go func() {
 		err = m.Run(ctx)
 		if err != nil {
@@ -55,13 +57,15 @@ func main() {
 		}
 	}()
 
+	// tcp
 	go func() {
-		err = t.Run()
+		err = t.Run(ctx)
 		if err != nil {
 			log.Fatalf("Can't run TCP server: %v \n", err)
 		}
 	}()
 
+	// http/https
 	err = a.Run(ctx)
 	if err != nil {
 		log.Fatalf("Can't run app: %v \n", err)

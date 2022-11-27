@@ -28,17 +28,18 @@ func NewMetricsServer(addr string, prom *prometheus.Registry) *MetricsServer {
 }
 
 func (m *MetricsServer) Run(ctx context.Context) error {
-	ctxShutDown := context.Background()
-	ctxShutDown, cancel := context.WithTimeout(ctxShutDown, time.Second*5)
-	defer func() {
-		cancel()
-	}()
 
 	go func() {
 		<-ctx.Done()
+		ctxShutDown := context.Background()
+		ctxShutDown, cancel := context.WithTimeout(ctxShutDown, time.Second*5)
+		defer func() {
+			cancel()
+		}()
 		if err := m.srv.Shutdown(ctxShutDown); err != nil {
 			log.Fatalf("server Shutdown Failed:%s", err)
 		}
+		log.Info("Metrics server stopped")
 		cancel()
 	}()
 	log.Infof("Starting metrics server on %s", m.addr)
@@ -58,7 +59,5 @@ func (m *MetricsServer) Run(ctx context.Context) error {
 		return err
 	}
 
-	<-ctxShutDown.Done()
-	log.Info("Metrics server stopped")
 	return nil
 }

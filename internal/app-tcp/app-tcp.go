@@ -2,7 +2,7 @@ package app_tcp
 
 import (
 	"bufio"
-	"fmt"
+	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -21,7 +21,7 @@ func NewTCPServer(addr string, prom *prometheus.Registry) *TcpEchoServer {
 	}
 }
 
-func (t *TcpEchoServer) Run() error {
+func (t *TcpEchoServer) Run(ctx context.Context) error {
 	log.Infof("Starting tcp server on %s", t.addr)
 	listener, err := net.Listen("tcp", t.addr)
 	if err != nil {
@@ -33,25 +33,32 @@ func (t *TcpEchoServer) Run() error {
 			log.Warningf("Failed to accept connection: %+v", err)
 			continue
 		}
-		tcp_con_handle(con)
+		tcp_con_handle(ctx, con)
 	}
 }
 
-func tcp_con_handle(conn net.Conn) {
+func tcp_con_handle(ctx context.Context, conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 	for {
-		bytes, err := reader.ReadBytes(byte('\n'))
-		if err != nil {
-			if err != io.EOF {
-				log.Errorf("Failed to read data: %+v", err)
+		select {
+		case <-ctx.Done():
+			log.Info("TCP server stopped")
+			break
+		default:
+			bytes, err := reader.ReadBytes(byte('\n'))
+			if err != nil {
+				if err != io.EOF {
+					log.Errorf("Failed to read data: %+v", err)
+				}
+				return
 			}
-			return
+			log.Infof("Request: '%s'", bytes)
+			_, err = conn.Write(bytes)
+			if err != nil {
+				log.Errorf("Failed to write data: %+v", err)
+			}
 		}
-		fmt.Printf("Request: %s", bytes)
-		_, err = conn.Write(bytes)
-		if err != nil {
-			log.Errorf("Failed to write data: %+v", err)
-		}
+
 	}
 }

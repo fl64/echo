@@ -52,19 +52,15 @@ func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry) *App {
 }
 
 func (a *App) Run(ctx context.Context) error {
-	ctxShutDown := context.Background()
-	ctxShutDown, cancel := context.WithTimeout(ctxShutDown, time.Second*5)
-	defer func() {
-		cancel()
-	}()
 
 	go func() {
 		<-ctx.Done()
-		if err := a.http.srv.Shutdown(ctxShutDown); err != nil {
-			log.Fatalf("http server Shutdown Failed:%s", err)
-		} else {
-			log.Info("Http server stopped")
-		}
+		ctxShutDown := context.Background()
+		ctxShutDown, cancel := context.WithTimeout(ctxShutDown, time.Second*5)
+		defer func() {
+			cancel()
+		}()
+
 		if a.https.srv != nil {
 			if err := a.https.srv.Shutdown(ctxShutDown); err != nil {
 				log.Fatalf("https server Shutdown Failed:%s", err)
@@ -72,7 +68,13 @@ func (a *App) Run(ctx context.Context) error {
 				log.Info("Https server stopped")
 			}
 		}
-		cancel()
+
+		if err := a.http.srv.Shutdown(ctxShutDown); err != nil {
+			log.Fatalf("http server Shutdown Failed:%s", err)
+		} else {
+			log.Info("Http server stopped")
+		}
+
 	}()
 
 	log.Info("Starting app ...")
@@ -120,7 +122,6 @@ func (a *App) Run(ctx context.Context) error {
 		return err
 	}
 
-	<-ctxShutDown.Done()
 	log.Info("App stopped")
 	return nil
 
