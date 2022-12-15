@@ -14,7 +14,7 @@ type Cfg struct {
 	TLSCrtFile        string        `env:"TLS_CRT_FILE" envDefault:"tls.crt"`
 	PodName           string        `env:"POD_NAME"`
 	PodNS             string        `env:"POD_NAMESPACE"`
-	SleepDelay        time.Duration `env:"SLEEP_DELAY" env-default:"1s"`
+	SleepDelay        time.Duration `env:"SLEEP_DELAY" envDefault:"1s"`
 }
 
 func GetConfig() (*Cfg, error) {

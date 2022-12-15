@@ -9,12 +9,8 @@ import (
 	"github.com/fl64/echo/internal/app-http/processor"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"net/http"
 	"os"
-	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -44,8 +40,7 @@ const (
 	Namespace = "echo"
 )
 
-func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, podNS, podName string, sleepDelay time.Duration) *App {
-	rs := atomic.Int32{}
+func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, podNS, podName string, sleepDelay time.Duration, rs *atomic.Int32) *App {
 	rs.Store(200)
 	return &App{
 		http: httpSrv{
@@ -59,7 +54,7 @@ func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, podNS, po
 			keyFile: key,
 		},
 		prom:       prom,
-		respStatus: &rs,
+		respStatus: rs,
 		PodNS:      podNS,
 		PodName:    podName,
 		SleepDelay: sleepDelay,
@@ -67,43 +62,6 @@ func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, podNS, po
 }
 
 func (a *App) Run(ctx context.Context) error {
-
-	// watching for annotations
-	//a.disaster.Store(false)
-	cfg, err := rest.InClusterConfig()
-	if err == nil {
-		clientset, err := kubernetes.NewForConfig(cfg)
-		if err != nil {
-			log.Fatalf("Error building kubernetes clientset: %v", err)
-		}
-		go func() {
-			log.Infof("Run annotation checker")
-			for {
-				pod, err := clientset.CoreV1().Pods(a.PodNS).Get(context.TODO(), a.PodName, metav1.GetOptions{})
-				if err != nil {
-					log.Errorf("Can't get pod: %v", err)
-				}
-				if metav1.HasAnnotation(pod.ObjectMeta, "status") {
-					if statusStr, ok := pod.Annotations["status"]; ok {
-						var err error
-						var status int
-						status, err = strconv.Atoi(statusStr)
-						if err == nil {
-							a.respStatus.Store(int32(status))
-							continue
-						} else {
-							log.Errorf("can't convert status to int %v", err)
-						}
-					}
-				}
-				a.respStatus.Store(200)
-				time.Sleep(a.SleepDelay)
-			}
-
-		}()
-	} else {
-		log.Warn("Not in cluster")
-	}
 
 	go func() {
 		<-ctx.Done()
