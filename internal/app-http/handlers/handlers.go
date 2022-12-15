@@ -9,14 +9,14 @@ import (
 )
 
 type Handler struct {
-	proc       *processor.Processor
-	respStatus *atomic.Int32
+	proc               *processor.Processor
+	httpResponseStatus *atomic.Int32
 }
 
-func NewHandler(proc *processor.Processor, respStatus *atomic.Int32) *Handler {
+func NewHandler(proc *processor.Processor, httpResponseStatus *atomic.Int32) *Handler {
 	return &Handler{
-		proc:       proc,
-		respStatus: respStatus,
+		proc:               proc,
+		httpResponseStatus: httpResponseStatus,
 	}
 }
 
@@ -26,7 +26,7 @@ func (h *Handler) JsonAllInfo(w http.ResponseWriter, r *http.Request) {
 		WrapErrorWithStatus(w, err, http.StatusInternalServerError)
 		return
 	}
-	WrapOK(w, info, int(h.respStatus.Load()))
+	WrapOK(w, info, int(h.httpResponseStatus.Load()))
 }
 
 func (h *Handler) Generate(w http.ResponseWriter, r *http.Request) {

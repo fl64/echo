@@ -13,14 +13,14 @@ import (
 )
 
 type k8sClient struct {
-	podNS      string
-	podName    string
-	delay      time.Duration
-	clientset  *kubernetes.Clientset
-	respStatus *atomic.Int32
+	podNS              string
+	podName            string
+	tickerDuration     time.Duration
+	clientset          *kubernetes.Clientset
+	httpResponseStatus *atomic.Int32
 }
 
-func NewK8sClient(podNS, podName string, delay time.Duration, respStatus *atomic.Int32) (*k8sClient, error) {
+func NewK8sClient(podNS, podName string, tickerDuration time.Duration, httpResponseStatus *atomic.Int32) (*k8sClient, error) {
 	var clientset *kubernetes.Clientset
 	var err error
 	cfg, err := rest.InClusterConfig()
@@ -33,17 +33,17 @@ func NewK8sClient(podNS, podName string, delay time.Duration, respStatus *atomic
 		return nil, fmt.Errorf("Not in cluster")
 	}
 	return &k8sClient{
-		podNS:      podNS,
-		podName:    podName,
-		delay:      delay,
-		clientset:  clientset,
-		respStatus: respStatus,
+		podNS:              podNS,
+		podName:            podName,
+		tickerDuration:     tickerDuration,
+		clientset:          clientset,
+		httpResponseStatus: httpResponseStatus,
 	}, err
 }
 
 func (k *k8sClient) Run(ctx context.Context) {
 	log.Infof("Run annotation checker")
-	tk := time.NewTicker(k.delay)
+	tk := time.NewTicker(k.tickerDuration)
 	for {
 		select {
 		case <-ctx.Done():
@@ -60,14 +60,14 @@ func (k *k8sClient) Run(ctx context.Context) {
 					var status int
 					status, err = strconv.Atoi(statusStr)
 					if err == nil {
-						k.respStatus.Store(int32(status))
+						k.httpResponseStatus.Store(int32(status))
 						continue
 					} else {
 						log.Errorf("can't convert status to int %v", err)
 					}
 				}
 			}
-			k.respStatus.Store(200)
+			k.httpResponseStatus.Store(200)
 		}
 	}
 }

@@ -31,16 +31,9 @@ type App struct {
 	https      httpsSrv
 	prom       *prometheus.Registry
 	respStatus *atomic.Int32
-	PodNS      string
-	PodName    string
-	SleepDelay time.Duration
 }
 
-const (
-	Namespace = "echo"
-)
-
-func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, podNS, podName string, sleepDelay time.Duration, rs *atomic.Int32) *App {
+func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, rs *atomic.Int32) *App {
 	rs.Store(200)
 	return &App{
 		http: httpSrv{
@@ -55,9 +48,6 @@ func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, podNS, po
 		},
 		prom:       prom,
 		respStatus: rs,
-		PodNS:      podNS,
-		PodName:    podName,
-		SleepDelay: sleepDelay,
 	}
 }
 

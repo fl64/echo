@@ -47,14 +47,14 @@ func main() {
 	}
 
 	prom := prometheus.NewRegistry()
-	m := metrics.NewMetricsServer(config.MetricsServerAddr, prom)
-	t := app_tcp.NewTCPServer(config.TCPServerAddr, prom)
+	metrics := metrics.NewMetricsServer(config.MetricsServerAddr, prom)
+	tcpServer := app_tcp.NewTCPServer(config.TCPServerAddr, prom)
 
-	rs := &atomic.Int32{}
-	a := app_http.NewApp(config.HTTPServerAddr, config.HTTPSServerAddr, config.TLSCrtFile, config.TLSKeyFile, prom, config.PodNS, config.PodName, config.SleepDelay, rs)
+	httpResponseStatus := &atomic.Int32{}
+	httpServer := app_http.NewApp(config.HTTPServerAddr, config.HTTPSServerAddr, config.TLSCrtFile, config.TLSKeyFile, prom, httpResponseStatus)
 
 	// run annotations checker
-	k, err := k8s.NewK8sClient(config.PodNS, config.PodName, config.SleepDelay, rs)
+	k, err := k8s.NewK8sClient(config.PodNS, config.PodName, config.TickerDuration, httpResponseStatus)
 	if err != nil {
 		log.Warnf("Can't create k8s client: %+v", err)
 	} else {
@@ -63,7 +63,7 @@ func main() {
 
 	// metrics
 	go func() {
-		err = m.Run(ctx)
+		err = metrics.Run(ctx)
 		if err != nil {
 			log.Fatalf("Can't run metrics server: %v \n", err)
 		}
@@ -71,14 +71,14 @@ func main() {
 
 	// tcp
 	go func() {
-		err = t.Run(ctx)
+		err = tcpServer.Run(ctx)
 		if err != nil {
 			log.Fatalf("Can't run TCP server: %v \n", err)
 		}
 	}()
 
 	// http/https
-	err = a.Run(ctx)
+	err = httpServer.Run(ctx)
 	if err != nil {
 		log.Fatalf("Can't run app: %v \n", err)
 	}
