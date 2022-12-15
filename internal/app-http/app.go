@@ -45,6 +45,8 @@ const (
 )
 
 func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, podNS, podName string, sleepDelay time.Duration) *App {
+	rs := atomic.Int32{}
+	rs.Store(200)
 	return &App{
 		http: httpSrv{
 			addr: addr,
@@ -57,7 +59,7 @@ func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, podNS, po
 			keyFile: key,
 		},
 		prom:       prom,
-		respStatus: &atomic.Int32{},
+		respStatus: &rs,
 		PodNS:      podNS,
 		PodName:    podName,
 		SleepDelay: sleepDelay,
@@ -81,12 +83,16 @@ func (a *App) Run(ctx context.Context) error {
 				if err != nil {
 					log.Errorf("Can't get pod: %v", err)
 				}
-				if metav1.HasAnnotation(pod.ObjectMeta, "disaster") {
-					if statusStr, ok := pod.Annotations["fl64.io/status"]; ok {
-						status, err := strconv.Atoi(statusStr)
-						if err != nil {
+				if metav1.HasAnnotation(pod.ObjectMeta, "status") {
+					if statusStr, ok := pod.Annotations["status"]; ok {
+						var err error
+						var status int
+						status, err = strconv.Atoi(statusStr)
+						if err == nil {
 							a.respStatus.Store(int32(status))
 							continue
+						} else {
+							log.Errorf("can't convert status to int %v", err)
 						}
 					}
 				}
