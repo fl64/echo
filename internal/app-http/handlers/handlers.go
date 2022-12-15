@@ -5,15 +5,18 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync/atomic"
 )
 
 type Handler struct {
-	proc *processor.Processor
+	proc       *processor.Processor
+	respStatus *atomic.Int32
 }
 
-func NewHandler(proc *processor.Processor) *Handler {
+func NewHandler(proc *processor.Processor, respStatus *atomic.Int32) *Handler {
 	return &Handler{
-		proc: proc,
+		proc:       proc,
+		respStatus: respStatus,
 	}
 }
 
@@ -23,7 +26,7 @@ func (h *Handler) JsonAllInfo(w http.ResponseWriter, r *http.Request) {
 		WrapErrorWithStatus(w, err, http.StatusInternalServerError)
 		return
 	}
-	WrapOK(w, info)
+	WrapOK(w, info, int(h.respStatus.Load()))
 }
 
 func (h *Handler) Generate(w http.ResponseWriter, r *http.Request) {

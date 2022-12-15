@@ -19,9 +19,9 @@ func WrapErrorWithStatus(w http.ResponseWriter, err error, httpStatus int) {
 	fmt.Fprintln(w, string(res))
 }
 
-func WrapOK(w http.ResponseWriter, m interface{}) {
+func WrapOK(w http.ResponseWriter, m interface{}, httpStatus int) {
 	res, _ := json.Marshal(m)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(httpStatus)
 	fmt.Fprintln(w, string(res))
 }

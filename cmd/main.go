@@ -33,7 +33,7 @@ func main() {
 	prom := prometheus.NewRegistry()
 	m := metrics.NewMetricsServer(config.MetricsServerAddr, prom)
 	t := app_tcp.NewTCPServer(config.TCPServerAddr, prom)
-	a := app_http.NewApp(config.HTTPServerAddr, config.HTTPSServerAddr, config.TLSCrtFile, config.TLSKeyFile, prom)
+	a := app_http.NewApp(config.HTTPServerAddr, config.HTTPSServerAddr, config.TLSCrtFile, config.TLSKeyFile, prom, config.PodNS, config.PodName, config.SleepDelay)
 
 	// signal
 	sigChan := make(chan os.Signal, 1)

@@ -9,8 +9,13 @@ import (
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"net/http"
 	"os"
+	"strconv"
+	"sync/atomic"
 	"time"
 )
 
@@ -26,16 +31,20 @@ type httpsSrv struct {
 }
 
 type App struct {
-	http  httpSrv
-	https httpsSrv
-	prom  *prometheus.Registry
+	http       httpSrv
+	https      httpsSrv
+	prom       *prometheus.Registry
+	respStatus *atomic.Int32
+	PodNS      string
+	PodName    string
+	SleepDelay time.Duration
 }
 
 const (
 	Namespace = "echo"
 )
 
-func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry) *App {
+func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, podNS, podName string, sleepDelay time.Duration) *App {
 	return &App{
 		http: httpSrv{
 			addr: addr,
@@ -47,11 +56,48 @@ func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry) *App {
 			crtFile: crt,
 			keyFile: key,
 		},
-		prom: prom,
+		prom:       prom,
+		respStatus: &atomic.Int32{},
+		PodNS:      podNS,
+		PodName:    podName,
+		SleepDelay: sleepDelay,
 	}
 }
 
 func (a *App) Run(ctx context.Context) error {
+
+	// watching for annotations
+	//a.disaster.Store(false)
+	cfg, err := rest.InClusterConfig()
+	if err == nil {
+		clientset, err := kubernetes.NewForConfig(cfg)
+		if err != nil {
+			log.Fatalf("Error building kubernetes clientset: %v", err)
+		}
+		go func() {
+			log.Infof("Run annotation checker")
+			for {
+				pod, err := clientset.CoreV1().Pods(a.PodNS).Get(context.TODO(), a.PodName, metav1.GetOptions{})
+				if err != nil {
+					log.Errorf("Can't get pod: %v", err)
+				}
+				if metav1.HasAnnotation(pod.ObjectMeta, "disaster") {
+					if statusStr, ok := pod.Annotations["fl64.io/status"]; ok {
+						status, err := strconv.Atoi(statusStr)
+						if err != nil {
+							a.respStatus.Store(int32(status))
+							continue
+						}
+					}
+				}
+				a.respStatus.Store(200)
+				time.Sleep(a.SleepDelay)
+			}
+
+		}()
+	} else {
+		log.Warn("Not in cluster")
+	}
 
 	go func() {
 		<-ctx.Done()
@@ -79,7 +125,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	log.Info("Starting app ...")
 	p := processor.NewProcessor(a.prom)
-	h := handlers.NewHandler(p)
+	h := handlers.NewHandler(p, a.respStatus)
 	r := api.CreateRoutes(h)
 	m := middleware.NewMiddleware(a.prom)
 	r.Use(m.Metrics)
