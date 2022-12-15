@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"echo/internal/app-http/processor"
+	"github.com/fl64/echo/internal/app-http/processor"
 	"net/http"
 	"strconv"
 	"strings"

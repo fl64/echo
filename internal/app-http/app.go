@@ -2,11 +2,11 @@ package app_http
 
 import (
 	"context"
-	"echo/internal/app-http/api"
-	"echo/internal/app-http/api/middleware"
-	"echo/internal/app-http/handlers"
-	"echo/internal/app-http/processor"
 	"fmt"
+	"github.com/fl64/echo/internal/app-http/api"
+	"github.com/fl64/echo/internal/app-http/api/middleware"
+	"github.com/fl64/echo/internal/app-http/handlers"
+	"github.com/fl64/echo/internal/app-http/processor"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
