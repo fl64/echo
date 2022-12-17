@@ -51,17 +51,19 @@ func (t *TcpEchoServer) tcp_con_handle(ctx context.Context, conn net.Conn) {
 			log.Info("TCP server stopped")
 			break
 		default:
-			bytes, err := reader.ReadBytes(byte('\n'))
-			if err != nil {
-				if err != io.EOF {
-					log.Errorf("Failed to read data: %+v", err)
-				}
-				return
-			}
-			log.Infof("Request: '%s'", bytes)
+			var bytes []byte
+			var err error
+			log.Infof("Remote connection from %s", conn.RemoteAddr().String())
 			switch t.msg {
 			case "":
-				break
+				bytes, err = reader.ReadBytes(byte('\n'))
+				if err != nil {
+					if err != io.EOF {
+						log.Errorf("Failed to read data: %+v", err)
+					}
+					return
+				}
+				log.Infof("Request: '%s'", bytes)
 			default:
 				bytes, _ = json.Marshal(models.Msg{Msg: os.ExpandEnv(t.msg)})
 			}
@@ -70,7 +72,6 @@ func (t *TcpEchoServer) tcp_con_handle(ctx context.Context, conn net.Conn) {
 			if err != nil {
 				log.Errorf("Failed to write data: %+v", err)
 			}
-
 			return
 		}
 	}
