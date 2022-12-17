@@ -29,13 +29,15 @@ type httpsSrv struct {
 type App struct {
 	http       httpSrv
 	https      httpsSrv
+	msg        string
 	prom       *prometheus.Registry
 	respStatus *atomic.Int32
 }
 
-func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, rs *atomic.Int32) *App {
+func NewApp(addr, addrTLS, crt, key string, prom *prometheus.Registry, rs *atomic.Int32, msg string) *App {
 	rs.Store(200)
 	return &App{
+		msg: msg,
 		http: httpSrv{
 			addr: addr,
 		},
@@ -78,7 +80,7 @@ func (a *App) Run(ctx context.Context) error {
 	}()
 
 	log.Info("Starting app ...")
-	p := processor.NewProcessor(a.prom)
+	p := processor.NewProcessor(a.msg, a.prom)
 	h := handlers.NewHandler(p, a.respStatus)
 	r := api.CreateRoutes(h)
 	m := middleware.NewMiddleware(a.prom)

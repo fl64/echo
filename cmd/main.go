@@ -48,10 +48,10 @@ func main() {
 
 	prom := prometheus.NewRegistry()
 	metrics := metrics.NewMetricsServer(config.MetricsServerAddr, prom)
-	tcpServer := app_tcp.NewTCPServer(config.TCPServerAddr, prom)
+	tcpServer := app_tcp.NewTCPServer(config.TCPServerAddr, prom, config.Message)
 
 	httpResponseStatus := &atomic.Int32{}
-	httpServer := app_http.NewApp(config.HTTPServerAddr, config.HTTPSServerAddr, config.TLSCrtFile, config.TLSKeyFile, prom, httpResponseStatus)
+	httpServer := app_http.NewApp(config.HTTPServerAddr, config.HTTPSServerAddr, config.TLSCrtFile, config.TLSKeyFile, prom, httpResponseStatus, config.Message)
 
 	// run annotations checker
 	k, err := k8s.NewK8sClient(config.PodNS, config.PodName, config.TickerDuration, httpResponseStatus)

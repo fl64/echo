@@ -3,21 +3,26 @@ package app_tcp
 import (
 	"bufio"
 	"context"
+	"encoding/json"
+	"github.com/fl64/echo/internal/app-http/models"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net"
+	"os"
 )
 
 type TcpEchoServer struct {
 	addr string
 	prom *prometheus.Registry
+	msg  string
 }
 
-func NewTCPServer(addr string, prom *prometheus.Registry) *TcpEchoServer {
+func NewTCPServer(addr string, prom *prometheus.Registry, msg string) *TcpEchoServer {
 	return &TcpEchoServer{
 		addr: addr,
 		prom: prom,
+		msg:  msg,
 	}
 }
 
@@ -33,11 +38,11 @@ func (t *TcpEchoServer) Run(ctx context.Context) error {
 			log.Warningf("Failed to accept connection: %+v", err)
 			continue
 		}
-		tcp_con_handle(ctx, con)
+		t.tcp_con_handle(ctx, con)
 	}
 }
 
-func tcp_con_handle(ctx context.Context, conn net.Conn) {
+func (t *TcpEchoServer) tcp_con_handle(ctx context.Context, conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 	for {
@@ -54,11 +59,19 @@ func tcp_con_handle(ctx context.Context, conn net.Conn) {
 				return
 			}
 			log.Infof("Request: '%s'", bytes)
+			switch t.msg {
+			case "":
+				break
+			default:
+				bytes, _ = json.Marshal(models.Msg{Msg: os.ExpandEnv(t.msg)})
+			}
+
 			_, err = conn.Write(bytes)
 			if err != nil {
 				log.Errorf("Failed to write data: %+v", err)
 			}
-		}
 
+			return
+		}
 	}
 }

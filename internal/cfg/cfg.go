@@ -6,6 +6,7 @@ import (
 )
 
 type Cfg struct {
+	Message           string        `env:"MESSAGE" envDefault:""`
 	HTTPServerAddr    string        `env:"HTTP_ADDR" envDefault:":8000"`
 	HTTPSServerAddr   string        `env:"HTTPS_ADDR" envDefault:":8443"`
 	TCPServerAddr     string        `env:"TCP_ADDR" envDefault:":1234"`

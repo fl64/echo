@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+const statusAnnotation = "status"
+
 type k8sClient struct {
 	podNS              string
 	podName            string
@@ -54,8 +56,8 @@ func (k *k8sClient) Run(ctx context.Context) {
 			if err != nil {
 				log.Errorf("Can't get pod: %v", err)
 			}
-			if metav1.HasAnnotation(pod.ObjectMeta, "status") {
-				if statusStr, ok := pod.Annotations["status"]; ok {
+			if metav1.HasAnnotation(pod.ObjectMeta, statusAnnotation) {
+				if statusStr, ok := pod.Annotations[statusAnnotation]; ok {
 					var err error
 					var status int
 					status, err = strconv.Atoi(statusStr)

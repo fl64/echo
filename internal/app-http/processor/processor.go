@@ -13,6 +13,7 @@ import (
 type Processor struct {
 	prom    *prometheus.Registry
 	metrics ProcessorMetrics
+	msg     string
 }
 
 type ProcessorMetrics struct {
@@ -20,9 +21,10 @@ type ProcessorMetrics struct {
 	operationsCount   *prometheus.CounterVec
 }
 
-func NewProcessor(prom *prometheus.Registry) *Processor {
+func NewProcessor(msg string, prom *prometheus.Registry) *Processor {
 	p := &Processor{
 		prom: prom,
+		msg:  msg,
 	}
 	p.initMetrics()
 
@@ -80,7 +82,33 @@ func (p Processor) GetEnvs() *models.Envs {
 	}
 }
 
-func (p Processor) Do(r *http.Request) (*models.Info, error) {
+func (p Processor) Do(r *http.Request) (interface{}, error) {
+	startTime := time.Now()
+	var result interface{}
+	switch p.msg {
+	case "":
+		res := &models.Info{}
+		res.HostData = make(map[string]string)
+		res.HostData["hostname"], _ = os.Hostname()
+		res.HostData["args"] = strings.Join(os.Args, ";")
+		res.Envs = *p.GetEnvs()
+		req, err := p.GetRequest(r)
+		if err != nil {
+			return nil, err
+		}
+		res.Req = req
+		result = res
+	default:
+		res := &models.Msg{Msg: os.ExpandEnv(p.msg)}
+		result = res
+	}
+
+	p.metrics.operationsCount.WithLabelValues().Inc()
+	p.metrics.operationDuration.WithLabelValues().Observe(time.Since(startTime).Seconds())
+	return result, nil
+}
+
+func (p Processor) DoMessage(r *http.Request) (interface{}, error) {
 	startTime := time.Now()
 	result := &models.Info{}
 	result.HostData = make(map[string]string)

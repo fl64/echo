@@ -4,6 +4,10 @@ import (
 	"net/http"
 )
 
+type Msg struct {
+	Msg string `json:"msg"`
+}
+
 type Info struct {
 	Req      *Req              `json:"request"`
 	HostData map[string]string `json:"hostdata"`
