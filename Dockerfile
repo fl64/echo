@@ -17,7 +17,7 @@ RUN go build \
   -o server \
   ./cmd/main.go
 
-FROM alpine:3.16
+FROM alpine:3.17.0
 WORKDIR /app
 COPY --from=builder /usr/local/go/src/echo-http/server /app/
 # test cert/key

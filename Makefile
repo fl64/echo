@@ -3,8 +3,8 @@ CONTAINER_NAME=echo
 CONTAINER_VER:=$(shell git describe --tags)
 CONTAINER_VER := $(if $(CONTAINER_VER),$(CONTAINER_VER),$(shell git rev-parse --short HEAD))
 
-HADOLINT_VER:=v1.22.1
-GOLANGLINT_VER:=v1.39.0
+HADOLINT_VER:=v2.12.0-alpine
+GOLANGLINT_VER:=v1.50.1
 
 CONTAINER_NAME_TAG=$(REGISTRY_REPO)/$(CONTAINER_NAME):$(CONTAINER_VER)
 CONTAINER_NAME_LATEST=$(REGISTRY_REPO)/$(CONTAINER_NAME):latest
@@ -29,8 +29,8 @@ push_latest: push latest
 	docker push $(CONTAINER_NAME_LATEST)
 
 lint:
-	docker run --rm -v $(PWD):/app:ro -w /app golangci/golangci-lint:$(GOLANGLINT_VER) golangci-lint run -v
 	docker run --rm -v "${PWD}":/app:ro -w /app hadolint/hadolint:$(HADOLINT_VER) hadolint /app/Dockerfile
+	docker run --rm -v $(PWD):/app:ro -w /app golangci/golangci-lint:$(GOLANGLINT_VER) golangci-lint run -v --timeout=360s
 
 mkcert:
 	mkcert test

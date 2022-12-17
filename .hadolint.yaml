@@ -1,0 +1,2 @@
+ignored:
+  - DL3018 #  warning: Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`
