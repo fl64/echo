@@ -1,0 +1,15 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "echo.fullname" . }}-role-binding
+  labels:
+    {{- include "echo.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "echo.fullname" . }}-pod-viewer
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "echo.serviceAccountName" . }}
+    namespace: {{.Release.Namespace}}
