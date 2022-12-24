@@ -38,7 +38,7 @@ mkcert:
 	mkcert test
 
 helm-dev-install:
-	helm upgrade --install echo -n $(NAMESPACE) helm/echo --set image.tag=$(CONTAINER_VER) --set podAnnotations.date="\"$(shell date +%s)\""
+	helm upgrade --install echo -n $(NAMESPACE) helm/echo --set image.tag=$(CONTAINER_VER) --set podAnnotations.date="\"$(shell date +%s)\""  -f tmp/values.yaml
 
 helm-dev-uninstall:
 	helm uninstall -n $(NAMESPACE) echo
