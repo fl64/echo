@@ -54,7 +54,7 @@ func main() {
 	httpServer := app_http.NewApp(config.HTTPServerAddr, config.HTTPSServerAddr, config.TLSCrtFile, config.TLSKeyFile, prom, httpResponseStatus, config.Message)
 
 	// run annotations checker
-	k, err := k8s.NewK8sClient(config.PodNS, config.PodName, config.TickerDuration, httpResponseStatus)
+	k, err := k8s.NewK8sClient(config.PodNS, config.PodName, httpResponseStatus)
 	if err != nil {
 		log.Warnf("Can't create k8s client: %+v", err)
 	} else {

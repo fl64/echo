@@ -9,6 +9,8 @@ GOLANGLINT_VER:=v1.50.1
 CONTAINER_NAME_TAG=$(REGISTRY_REPO)/$(CONTAINER_NAME):$(CONTAINER_VER)
 CONTAINER_NAME_LATEST=$(REGISTRY_REPO)/$(CONTAINER_NAME):latest
 
+NAMESPACE:=echo-test
+
 .PHONY: up down build latest push push_latest lint
 up:
 	docker-compose up -d --build
@@ -34,3 +36,9 @@ lint:
 
 mkcert:
 	mkcert test
+
+helm-dev-install:
+	helm upgrade --install echo -n $(NAMESPACE) helm/echo --set image.tag=$(CONTAINER_VER) --set podAnnotations.date="\"$(shell date +%s)\""
+
+helm-dev-uninstall:
+	helm uninstall -n $(NAMESPACE) echo
