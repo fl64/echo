@@ -43,7 +43,7 @@ func NewK8sClient(podNS, podName string, httpResponseStatus *atomic.Int32) (*k8s
 }
 
 func (k *k8sClient) setStatus(a map[string]string) {
-	if statusStr, ok := a["status"]; ok {
+	if statusStr, ok := a[statusAnnotation]; ok {
 		status, err := strconv.Atoi(statusStr)
 		if err == nil && status >= 100 && status <= 999 {
 			k.httpResponseStatus.Store(int32(status))
