@@ -42,3 +42,6 @@ helm-dev-install:
 
 helm-dev-uninstall:
 	helm uninstall -n $(NAMESPACE) echo
+
+werf:
+	werf build --repo fl64/echo --add-custom-tag=latest
