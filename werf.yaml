@@ -1,0 +1,51 @@
+---
+project: echo
+configVersion: 1
+gitWorktree:
+  forceShallowClone: true
+---
+artifact: golang-builder
+from: golang:1.19-buster
+git:
+- add: /
+  to: /usr/local/go/src/echo
+  stageDependencies:
+    install:
+      - '**/*'
+shell:
+  install:
+  - cd /usr/local/go/src/echo
+  - go mod download
+  - export GO111MODULE=on
+  - export GOOS=linux
+  - export CGO_ENABLED=0
+  - go build -v -ldflags "-w -s -X 'main.BuildDatetime=$(date --iso-8601=seconds)'" -o server ./cmd/main.go
+---
+image: fl64/echo
+from: alpine:3.17
+git:
+- add: /tls.key
+  to: /app/tls.key
+  stageDependencies:
+    install:
+      - '**/*'
+- add: /tls.crt
+  to: /app/tls.crt
+  stageDependencies:
+    install:
+      - '**/*'
+import:
+- artifact: golang-builder
+  add: /usr/local/go/src/echo/server
+  to: /app/server
+  after: install
+shell:
+  beforeInstall:
+  - apk add --no-cache  jq iproute2 bind-tools --no-cache
+docker:
+  EXPOSE: "8000"
+  WORKDIR: "/app"
+  CMD: ["/app/echo"]
+  LABEL:
+    maintainer: "flsixtyfour@gmail.com"
+    org.label-schema.vcs-url: "https://github.com/fl64/http-echo"
