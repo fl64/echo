@@ -78,6 +78,7 @@ func (m *Middleware) Logging(next http.Handler) http.Handler {
 			"url":            r.URL.String(),
 			"host":           r.Host,
 			"user-agent":     r.Header["User-Agent"],
+			"headers":        r.Header,
 			"method":         r.Method,
 			"remote-addr":    r.RemoteAddr,
 			"content-length": r.ContentLength,
